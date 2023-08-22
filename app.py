@@ -37,7 +37,7 @@ cur.execute("""
         number TEXT,
         suburb TEXT,
         city TEXT,
-        postcode, TEXT,
+        postcode TEXT,
         province TEXT
     )
 """)
@@ -85,7 +85,7 @@ def logout():
 
 
 @app.route('/register', methods=['POST'])
-# @cross_origin(methods=['POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+@cross_origin(methods=['POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def register():
     obj = request.get_json()
     print(obj)
@@ -158,7 +158,7 @@ def sites():
                 print(value)
                 y = db.search_similar_site(key, value)
         print(y)
-        return jsonify({'msg': 'Well done'})
+        return jsonify(y)
 
 @app.route('/addsite', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
