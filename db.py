@@ -1,5 +1,9 @@
 import sqlite3
 
+def dict_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return {key: value for key, value in zip(fields, row)}
+
 class DbUtil:
     # DB OPS WITH USERS
     def __init__(self):
@@ -23,21 +27,21 @@ class DbUtil:
         return c.fetchone()
     
     # DB OPS WITH SITES
-    def save_site(self, customer, latitude, longitude, building, street, number, suburb, city, postcode, province):
+    def save_site(self, site, latitude, longitude, building, street, number, suburb, city, postcode, province):
         c = self.con.cursor()
 
         c.execute(
-            'INSERT INTO sites (customer, latitude, longitude, building, street, number, suburb, city, postcode, province) VALUES (?,?,?,?,?,?,?,?,?,?)', 
-            (customer, latitude, longitude, building, street, number, suburb, city, postcode, province)
+            'INSERT INTO sites (site, latitude, longitude, building, street, number, suburb, city, postcode, province) VALUES (?,?,?,?,?,?,?,?,?,?)', 
+            (site, latitude, longitude, building, street, number, suburb, city, postcode, province)
         )
         self.con.commit()
         return c.lastrowid
     
-    def search_site(self, customer):
+    def search_site(self, site):
         c = self.con.cursor()
 
         c.execute(
-            'SELECT * FROM sites WHERE customer = ?', (customer,)
+            'SELECT * FROM sites WHERE site = ?', (site,)
         )
         return c.fetchone()
     
@@ -49,3 +53,14 @@ class DbUtil:
         )
         return c.fetchall()
     
+    # def search_similar_site_to_view(self, site):
+    #     c = self.con.cursor()
+
+    #     row = c.execute(
+    #         'SELECT * FROM sites WHERE site = ?', (site,)
+    #     )
+    #     x= []
+    #     for i in row:
+    #         c.row_factory = dict_factory(c, i)
+    #         x.append(c.row_factory)
+    #     return x

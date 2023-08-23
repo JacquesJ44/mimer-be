@@ -29,7 +29,7 @@ cur.execute("""
  """)
 cur.execute("""   
     CREATE TABLE IF NOT EXISTS sites (
-        customer TEXT PRIMARY KEY,
+        site TEXT PRIMARY KEY,
         latitude TEXT,
         longitude TEXT,
         building TEXT,
@@ -42,6 +42,10 @@ cur.execute("""
     )
 """)
 con.close()
+
+def dict_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return {key: value for key, value in zip(fields, row)}
 
     # ROUTES
     
@@ -166,10 +170,10 @@ def addsite():
     if request.method == 'POST':
         obj = request.get_json()
         print(obj)
-        exists = db.search_site(obj['customer'])
+        exists = db.search_site(obj['site'])
         if not exists:
             db.save_site(
-                obj['customer'],
+                obj['site'],
                 obj['latitude'], 
                 obj['longitude'], 
                 obj['building'], 
@@ -189,6 +193,14 @@ def addsite():
             res.status_code = 406
             res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
             return res
+        
+@app.route('/viewsite/<site>', methods=['GET'])
+@cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+def view_site(site):
+    row = db.search_site(site)
+    print(row)
+    return row
+    # return jsonify({"msg": "Jou ma vreet a"})
 
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, resource={r"/*": {"origins": "*"}})
