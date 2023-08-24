@@ -149,10 +149,6 @@ def sites():
         obj = request.get_json()
         print('This is the object')
         print(obj)
-        # x = json.loads(obj)
-        # x = dict(x)
-        # print('This is the dict obj')
-        # print(obj)
         for key, value in obj.items():
             if value == "":
                 pass
@@ -162,7 +158,7 @@ def sites():
                 print(value)
                 y = db.search_similar_site(key, value)
         print(y)
-        return jsonify(y)
+        return y
 
 @app.route('/addsite', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
@@ -197,10 +193,11 @@ def addsite():
 @app.route('/viewsite/<site>', methods=['GET'])
 @cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def view_site(site):
-    row = db.search_site(site)
+    obj = request.get_json()
+    print(obj)
+    row = db.search_site(obj['site'])
     print(row)
-    return row
-    # return jsonify({"msg": "Jou ma vreet a"})
+    return jsonify({"msg": "Jou ma vreet a"})
 
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, resource={r"/*": {"origins": "*"}})
