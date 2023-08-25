@@ -193,11 +193,9 @@ def addsite():
 @app.route('/viewsite/<site>', methods=['GET'])
 @cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def view_site(site):
-    obj = request.get_json()
-    print(obj)
-    row = db.search_site(obj['site'])
+    row = db.search_site_to_view(site)
     print(row)
-    return jsonify({"msg": "Jou ma vreet a"})
+    return row
 
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, resource={r"/*": {"origins": "*"}})

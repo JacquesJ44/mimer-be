@@ -46,21 +46,33 @@ class DbUtil:
         return c.fetchone()
     
     def search_similar_site(self, dict_key, dict_value):
+        x = []
         c = self.con.cursor()
 
-        c.execute(
-            'SELECT * FROM sites WHERE ' + dict_key + ' LIKE ' + dict_value
-        )
-        return c.fetchall()
-    
-    # def search_similar_site_to_view(self, site):
-    #     c = self.con.cursor()
+        for row in c.execute(
+               'SELECT * FROM sites WHERE ' + dict_key + ' LIKE ' + dict_value
+            ):
+            x.append(row)
 
-    #     row = c.execute(
-    #         'SELECT * FROM sites WHERE site = ?', (site,)
-    #     )
-    #     x= []
-    #     for i in row:
-    #         c.row_factory = dict_factory(c, i)
-    #         x.append(c.row_factory)
-    #     return x
+        y = []
+        for i in x:
+            c.row_factory = dict_factory(c, i)
+            y.append(c.row_factory)
+
+        return y
+    
+    def search_site_to_view(self, site):
+        x = []
+        c = self.con.cursor()
+
+        for row in c.execute(
+                'SELECT * FROM sites WHERE site = ?', (site,)
+            ):
+            x.append(row)
+
+        y = []
+        for i in x:
+            c.row_factory = dict_factory(c, i)
+            y.append(c.row_factory)
+
+        return y
