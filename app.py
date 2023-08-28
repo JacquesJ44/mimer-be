@@ -7,7 +7,7 @@ import sqlite3
 from db import DbUtil
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '1245oiajfdsgkjfadsfascjhkchjkgeffhklfhtrtbwefaehnmjjmwsdgnieabvrv4inuviun5niaiae'
+app.config['SECRET_KEY'] = '1245oiajfdsgkjfadsfasbvrv4inuviun5niaiae'
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config["SESSION_COOKIE_SAMESITE"] = 'None'
@@ -195,7 +195,7 @@ def addsite():
 def view_site(site):
     row = db.search_site_to_view(site)
     print(row)
-    return row
+    return row[0]
 
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, resource={r"/*": {"origins": "*"}})
