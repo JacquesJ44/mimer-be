@@ -197,6 +197,23 @@ def view_site(site):
     print(row)
     return row[0]
 
+@app.route('/getsite', methods=['GET'])
+@cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+def get_site():
+    obj = request.get_json()
+    print('Get this site')
+    print(obj)
+    # for key, value in obj.items():
+    #     if value == "":
+    #         pass
+    #     else:
+    #         value = "'%" + value + "%'"
+    #         print(key)
+    #         print(value)
+    #         y = db.search_similar_site(key, value)
+    # print(y)
+    return obj
+
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, resource={r"/*": {"origins": "*"}})
     app.run(debug=True)
