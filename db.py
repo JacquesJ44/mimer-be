@@ -76,3 +76,19 @@ class DbUtil:
             y.append(c.row_factory)
 
         return y
+    
+    def search_sitename(self, site):
+        x = []
+        c = self.con.cursor()
+
+        for row in c.execute(
+            'SELECT * FROM sites WHERE site LIKE ' + site
+            ):
+            x.append(row)
+
+        y = []
+        for i in x:
+            c.row_factory = dict_factory(c, i)
+            y.append(c.row_factory)
+
+        return y
