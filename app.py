@@ -41,6 +41,24 @@ cur.execute("""
         province TEXT
     )
 """)
+cur.execute("""
+    CREATE TABLE IF NOT EXISTS circuits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        vendor TEXT,
+        circuit_type TEXT,
+        speed TEXT,
+        circuit_number TEXT,
+        enni TEXT,
+        vlan TEXT,
+        start_date TEXT,
+        contract_term TEXT,
+        end_date TEXT,
+        siteA TEXT,
+        siteB TEXT,
+        comments TEXT
+        
+    )
+""")
 con.close()
 
 def dict_factory(cursor, row):
@@ -160,6 +178,39 @@ def sites():
         print(y)
         return y
 
+@app.route('/addcircuit', methods=['GET', 'POST'])
+@cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+def addcircuit():
+    if request.method == 'POST':
+        obj = request.get_json()
+        print(obj)
+        
+        try:
+            db.save_circuit(
+                obj['vendor'],
+                obj['circuitType'], 
+                obj['speed'], 
+                obj['circuitNumber'], 
+                obj['enni'], 
+                obj['vlan'], 
+                obj['startDate'], 
+                obj['contractTerm'], 
+                obj['endDate'], 
+                obj['siteA'],
+                obj['siteB'],
+                obj['comments']
+                # obj['file']
+            )
+            res = make_response({"msg": "Circuit successfully added"})
+            res.status_code = 200
+            res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
+            return res
+        except:   
+            res = make_response({"error": "Unable to save circuit"})
+            res.status_code = 403
+            res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
+            return res
+        
 @app.route('/addsite', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def addsite():

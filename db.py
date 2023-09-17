@@ -92,3 +92,14 @@ class DbUtil:
             y.append(c.row_factory)
 
         return y
+    
+    # DB OPS WITH CIRCUITS
+    def save_circuit(self, vendor, circuit_type, speed, circuit_number, enni, vlan, start_date, contract_term, end_date, siteA, siteB, comments):
+        c = self.con.cursor()
+
+        c.execute(
+            'INSERT INTO circuits (vendor, circuit_type, speed, circuit_number, enni, vlan, start_date, contract_term, end_date, siteA, siteB, comments) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', 
+            (vendor, circuit_type, speed, circuit_number, enni, vlan, start_date, contract_term, end_date, siteA, siteB, comments)
+        )
+        self.con.commit()
+        return c.lastrowid
