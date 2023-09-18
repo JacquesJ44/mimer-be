@@ -55,7 +55,8 @@ cur.execute("""
         end_date TEXT,
         siteA TEXT,
         siteB TEXT,
-        comments TEXT
+        comments TEXT,
+        status TEXT
         
     )
 """)
@@ -142,7 +143,19 @@ def circuits():
             return res
 
     if request.method == 'POST':
-        pass
+        obj = request.get_json()
+        print('This is the object')
+        print(obj)
+        for key, value in obj.items():
+            if value == "":
+                pass
+            else:
+                value = "'%" + value + "%'"
+                print(key)
+                print(value)
+                y = db.search_similar_circuit(key, value)
+        print(y)
+        return y
 
 @app.route('/sites', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
@@ -183,6 +196,7 @@ def sites():
 def addcircuit():
     if request.method == 'POST':
         obj = request.get_json()
+        status = 'active'
         print(obj)
         
         try:
@@ -198,8 +212,8 @@ def addcircuit():
                 obj['endDate'], 
                 obj['siteA'],
                 obj['siteB'],
-                obj['comments']
-                # obj['file']
+                obj['comments'],
+                status
             )
             res = make_response({"msg": "Circuit successfully added"})
             res.status_code = 200
@@ -241,12 +255,20 @@ def addsite():
             res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
             return res
         
+@app.route('/viewcircuit/<int:id>', methods=['GET'])
+@cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+def view_circuit(id):
+    row = db.search_circuit_to_view(id)
+    print(row)
+    return row[0]
+
 @app.route('/viewsite/<site>', methods=['GET'])
 @cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def view_site(site):
     row = db.search_site_to_view(site)
     print(row)
     return row[0]
+
 
 @app.route('/getsite', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')

@@ -5,10 +5,11 @@ def dict_factory(cursor, row):
     return {key: value for key, value in zip(fields, row)}
 
 class DbUtil:
-    # DB OPS WITH USERS
     def __init__(self):
         self.con = sqlite3.connect('mimir.db', check_same_thread=False)
 
+    # DB OPS WITH USERS
+    # Save a new user
     def save_user(self, name, surname, email, password):
         c = self.con.cursor()
 
@@ -17,7 +18,8 @@ class DbUtil:
         ) 
         self.con.commit()
         return c.lastrowid
-    
+
+    # Search for a user in the users table
     def get_user_by_email(self, email):
         c = self.con.cursor()
 
@@ -27,6 +29,7 @@ class DbUtil:
         return c.fetchone()
     
     # DB OPS WITH SITES
+    # Save a new site
     def save_site(self, site, latitude, longitude, building, street, number, suburb, city, postcode, province):
         c = self.con.cursor()
 
@@ -36,7 +39,8 @@ class DbUtil:
         )
         self.con.commit()
         return c.lastrowid
-    
+
+    # Search if a site already exists in the db before saving it
     def search_site(self, site):
         c = self.con.cursor()
 
@@ -45,6 +49,7 @@ class DbUtil:
         )
         return c.fetchone()
     
+    # Search the db for similar sites as searched for on the Sites page
     def search_similar_site(self, dict_key, dict_value):
         x = []
         c = self.con.cursor()
@@ -61,6 +66,7 @@ class DbUtil:
 
         return y
     
+    # Search a site to view in the ViewSite page
     def search_site_to_view(self, site):
         x = []
         c = self.con.cursor()
@@ -77,6 +83,7 @@ class DbUtil:
 
         return y
     
+    # Search sitename to add the site in AddCircuits
     def search_sitename(self, site):
         x = []
         c = self.con.cursor()
@@ -94,12 +101,47 @@ class DbUtil:
         return y
     
     # DB OPS WITH CIRCUITS
-    def save_circuit(self, vendor, circuit_type, speed, circuit_number, enni, vlan, start_date, contract_term, end_date, siteA, siteB, comments):
+    # Save a new circuit
+    def save_circuit(self, vendor, circuit_type, speed, circuit_number, enni, vlan, start_date, contract_term, end_date, siteA, siteB, comments, status):
         c = self.con.cursor()
 
         c.execute(
-            'INSERT INTO circuits (vendor, circuit_type, speed, circuit_number, enni, vlan, start_date, contract_term, end_date, siteA, siteB, comments) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', 
-            (vendor, circuit_type, speed, circuit_number, enni, vlan, start_date, contract_term, end_date, siteA, siteB, comments)
+            'INSERT INTO circuits (vendor, circuit_type, speed, circuit_number, enni, vlan, start_date, contract_term, end_date, siteA, siteB, comments, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', 
+            (vendor, circuit_type, speed, circuit_number, enni, vlan, start_date, contract_term, end_date, siteA, siteB, comments, status)
         )
         self.con.commit()
         return c.lastrowid
+
+    # Search the db for similar circuit as searched for on the Circuits page
+    def search_similar_circuit(self, dict_key, dict_value):
+        x = []
+        c = self.con.cursor()
+
+        for row in c.execute(
+               'SELECT * FROM circuits WHERE ' + dict_key + ' LIKE ' + dict_value
+            ):
+            x.append(row)
+
+        y = []
+        for i in x:
+            c.row_factory = dict_factory(c, i)
+            y.append(c.row_factory)
+
+        return y
+    
+    # Search a circuit to view in the ViewCircuit page
+    def search_circuit_to_view(self, id):
+        x = []
+        c = self.con.cursor()
+
+        for row in c.execute(
+                'SELECT * FROM circuits WHERE id = ?', (id,)
+            ):
+            x.append(row)
+
+        y = []
+        for i in x:
+            c.row_factory = dict_factory(c, i)
+            y.append(c.row_factory)
+
+        return y
