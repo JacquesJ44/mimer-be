@@ -100,14 +100,24 @@ class DbUtil:
 
         return y
     
-    # DB OPS WITH CIRCUITS
-    # Save a new circuit
-    def save_circuit(self, vendor, circuit_type, speed, circuit_number, enni, vlan, start_date, contract_term, end_date, siteA, siteB, comments, status):
+    # Delete a site
+    def delete_site(self, site):
         c = self.con.cursor()
 
         c.execute(
-            'INSERT INTO circuits (vendor, circuit_type, speed, circuit_number, enni, vlan, start_date, contract_term, end_date, siteA, siteB, comments, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', 
-            (vendor, circuit_type, speed, circuit_number, enni, vlan, start_date, contract_term, end_date, siteA, siteB, comments, status)
+            'DELETE FROM sites WHERE site = ?', (site,)
+        )
+        
+        return '-'
+    
+    # DB OPS WITH CIRCUITS
+    # Save a new circuit
+    def save_circuit(self, vendor, circuitType, speed, circuitNumber, enni, vlan, startDate, contractTerm, endDate, siteA, siteB, comments, status):
+        c = self.con.cursor()
+
+        c.execute(
+            'INSERT INTO circuits (vendor, circuitType, speed, circuitNumber, enni, vlan, startDate, contractTerm, endDate, siteA, siteB, comments, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', 
+            (vendor, circuitType, speed, circuitNumber, enni, vlan, startDate, contractTerm, endDate, siteA, siteB, comments, status)
         )
         self.con.commit()
         return c.lastrowid

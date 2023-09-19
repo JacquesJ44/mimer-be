@@ -45,14 +45,14 @@ cur.execute("""
     CREATE TABLE IF NOT EXISTS circuits (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         vendor TEXT,
-        circuit_type TEXT,
+        circuitType TEXT,
         speed TEXT,
-        circuit_number TEXT,
+        circuitNumber TEXT,
         enni TEXT,
         vlan TEXT,
-        start_date TEXT,
-        contract_term TEXT,
-        end_date TEXT,
+        startDate TEXT,
+        contractTerm TEXT,
+        endDate TEXT,
         siteA TEXT,
         siteB TEXT,
         comments TEXT,
@@ -146,6 +146,7 @@ def circuits():
         obj = request.get_json()
         print('This is the object')
         print(obj)
+        y = []
         for key, value in obj.items():
             if value == "":
                 pass
@@ -154,8 +155,11 @@ def circuits():
                 print(key)
                 print(value)
                 y = db.search_similar_circuit(key, value)
-        print(y)
-        return y
+        if y:
+            print(y)
+            return y
+            
+        return jsonify({"error": "No entries found"}), 404
 
 @app.route('/sites', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
@@ -180,6 +184,7 @@ def sites():
         obj = request.get_json()
         print('This is the object')
         print(obj)
+        y = []
         for key, value in obj.items():
             if value == "":
                 pass
@@ -188,8 +193,12 @@ def sites():
                 print(key)
                 print(value)
                 y = db.search_similar_site(key, value)
-        print(y)
-        return y
+        if y:
+            print(y)
+            return y
+            
+        return jsonify({"error": "No entries found"}), 404
+        
 
 @app.route('/addcircuit', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
@@ -262,12 +271,19 @@ def view_circuit(id):
     print(row)
     return row[0]
 
-@app.route('/viewsite/<site>', methods=['GET'])
-@cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+@app.route('/viewsite/<site>', methods=['GET', 'POST'])
+@cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def view_site(site):
-    row = db.search_site_to_view(site)
-    print(row)
-    return row[0]
+    if request.method == 'GET':
+        row = db.search_site_to_view(site)
+        print(row)
+        return row[0]
+
+    if request.method == 'POST':
+        row = db.search_circuit_to_view(site)
+        if row:
+            db.delete_site(site)
+        return jsonify({"msg": "Deleted!"})
 
 
 @app.route('/getsite', methods=['GET', 'POST'])
@@ -281,7 +297,17 @@ def get_site():
         print(y)
     else:
         return jsonify({"msg": "No site found"})
-    return y 
+    return y
+
+# @app.route('/deletesite', methods=['GET', 'POST']) 
+# @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+# def delete_site():
+#     if request.method == 'POST':
+#         obj = request.get_json()
+#         print(obj)
+#         db.delete_site(obj['site'])
+
+#         return jsonify({"msg": "Deleted!"})
 
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, resource={r"/*": {"origins": "*"}})
