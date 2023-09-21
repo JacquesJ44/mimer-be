@@ -205,7 +205,7 @@ def sites():
 def addcircuit():
     if request.method == 'POST':
         obj = request.get_json()
-        status = 'active'
+        status = 'Active'
         print(obj)
         
         try:
@@ -280,9 +280,10 @@ def view_site(site):
         return row[0]
 
     if request.method == 'POST':
-        row = db.search_circuit_to_view(site)
-        if row:
-            db.delete_site(site)
+        row = db.search_site_to_view(site)
+        print('row found')
+        print(row)
+        db.delete_site(site)
         return jsonify({"msg": "Deleted!"})
 
 

@@ -108,7 +108,8 @@ class DbUtil:
             'DELETE FROM sites WHERE site = ?', (site,)
         )
         
-        return '-'
+        self.con.commit()
+        return c.lastrowid
     
     # DB OPS WITH CIRCUITS
     # Save a new circuit
