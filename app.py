@@ -1,13 +1,13 @@
 from flask import Flask
 from flask import jsonify, request, make_response, session
 from flask_cors import CORS, cross_origin
-import json
+import os
 import sqlite3
 
 from db import DbUtil
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '1245oiajfdsgkjfadsfasbvrv4inuviun5niaiae'
+app.config['SECRET_KEY'] = os.urandom(12).hex()
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config["SESSION_COOKIE_SAMESITE"] = 'None'
@@ -155,6 +155,7 @@ def circuits():
                 print(key)
                 print(value)
                 y = db.search_similar_circuit(key, value)
+                # y.append(x)
         if y:
             print(y)
             return y
@@ -286,7 +287,19 @@ def view_site(site):
         db.delete_site(site)
         return jsonify({"msg": "Deleted!"})
 
-
+@app.route('/updatecircuit/<int:id>', methods=['POST'])
+@cross_origin(methods=['POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+def update_circuit(id):
+    if request.method == 'POST':
+        obj = request.get_json()
+        print(obj)
+        for key, value in obj.items():
+            if key == 'id':
+                pass
+            else:
+                db.update_circuit(key, value, obj['id'])
+        return jsonify({"msg": 'Updated'})
+    
 @app.route('/getsite', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def get_site():

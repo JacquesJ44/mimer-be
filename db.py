@@ -156,3 +156,13 @@ class DbUtil:
             y.append(c.row_factory)
 
         return y
+    
+    # Update an existing record in db
+    def update_circuit(self, dict_key, dict_value, id):
+        c = self.con.cursor()
+
+        c.execute("UPDATE circuits SET " + dict_key + "='" + dict_value + "' WHERE id = ?", (id,)
+        )
+
+        self.con.commit()
+        return c.lastrowid
