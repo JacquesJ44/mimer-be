@@ -1,10 +1,14 @@
 from flask import Flask
 from flask import jsonify, request, make_response, session
 from flask_cors import CORS, cross_origin
+from werkzeug.utils import secure_filename
 import os
 import sqlite3
 
 from db import DbUtil
+
+UPLOAD_FOLDER = '/Users/jacquesdutoit/Documents/vsc/mimer-be'
+ALLOWED_EXTENSIONS = set(['pdf', 'png'])
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(12).hex()
@@ -13,6 +17,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config["SESSION_COOKIE_SAMESITE"] = 'None'
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_HTTPONLY"] = False
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 db = DbUtil()
 
@@ -56,8 +61,8 @@ cur.execute("""
         siteA TEXT,
         siteB TEXT,
         comments TEXT,
-        status TEXT
-        
+        status TEXT,
+        doc TEXT
     )
 """)
 con.close()
@@ -207,8 +212,10 @@ def addcircuit():
     if request.method == 'POST':
         obj = request.get_json()
         status = 'Active'
+        doc = obj['doc']
+        filename = doc.split('\\')
+        filename = filename[2]
         print(obj)
-        
         try:
             db.save_circuit(
                 obj['vendor'],
@@ -223,7 +230,8 @@ def addcircuit():
                 obj['siteA'],
                 obj['siteB'],
                 obj['comments'],
-                status
+                status,
+                filename
             )
             res = make_response({"msg": "Circuit successfully added"})
             res.status_code = 200
@@ -234,7 +242,28 @@ def addcircuit():
             res.status_code = 403
             res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
             return res
-        
+
+@app.route('/upload', methods=['POST'])
+@cross_origin(methods=['POST'], supports_credentials=True, origins='http://localhost:3000')
+def upload():
+    target = os.path.join(UPLOAD_FOLDER, 'docs')
+    if not os.path.isdir(target):
+        os.mkdir(target)
+    file = request.files['formFile']
+    filename = secure_filename(file.filename)
+    destination = '/'.join([target, filename])
+    print(filename)
+    if filename not in os.listdir(target):
+        file.save(destination)
+    else:
+        res = make_response({"error": "File already exists"})
+        res.status_code = 403
+        return res
+    res = make_response({"msg": "Document uploaded successfully!"})
+    res.status_code = 200
+    # res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
+    return res
+
 @app.route('/addsite', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def addsite():
