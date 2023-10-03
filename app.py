@@ -1,5 +1,5 @@
 from flask import Flask
-from flask import jsonify, request, make_response, session
+from flask import jsonify, request, make_response, session, send_file, send_from_directory
 from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
 import os
@@ -329,6 +329,20 @@ def update_circuit(id):
                 db.update_circuit(key, value, obj['id'])
         return jsonify({"msg": 'Updated'})
     
+@app.route('/download/<int:id>', methods=['POST'])
+@cross_origin(methods=['POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+def download(id):
+    row = db.search_circuit_to_view(id)
+    print(row)
+    file = row[0]['doc']
+    print(file)
+    target = os.path.join(UPLOAD_FOLDER, 'docs/')
+    print(target)
+    if file in os.listdir(target):
+        return send_file(target + file, as_attachment=True)
+    else:
+        return jsonify({"error": "File not Found"})
+    
 @app.route('/getsite', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def get_site():
@@ -341,16 +355,6 @@ def get_site():
     else:
         return jsonify({"msg": "No site found"})
     return y
-
-# @app.route('/deletesite', methods=['GET', 'POST']) 
-# @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
-# def delete_site():
-#     if request.method == 'POST':
-#         obj = request.get_json()
-#         print(obj)
-#         db.delete_site(obj['site'])
-
-#         return jsonify({"msg": "Deleted!"})
 
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, resource={r"/*": {"origins": "*"}})
