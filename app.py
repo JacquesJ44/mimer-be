@@ -2,6 +2,7 @@ from flask import Flask
 from flask import jsonify, request, make_response, session, send_file, send_from_directory
 from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
+from io import BytesIO
 import os
 import sqlite3
 
@@ -160,7 +161,6 @@ def circuits():
                 print(key)
                 print(value)
                 y = db.search_similar_circuit(key, value)
-                # y.append(x)
         if y:
             print(y)
             return y
@@ -212,9 +212,17 @@ def addcircuit():
     if request.method == 'POST':
         obj = request.get_json()
         status = 'Active'
-        doc = obj['doc']
-        filename = doc.split('\\')
-        filename = filename[2]
+        if obj['doc']:
+            doc = obj['doc']
+            filename = doc.split('\\')
+            filename = filename[2]
+            # print('Original filename: ' + filename)
+            # input()
+            filename = filename.replace(' ', '_')
+            # print('Replaced with: ' + filename)
+            # input()
+        else:
+            filename = 'None'
         print(obj)
         try:
             db.save_circuit(
@@ -322,6 +330,13 @@ def update_circuit(id):
     if request.method == 'POST':
         obj = request.get_json()
         print(obj)
+        if obj['doc']:
+            doc = obj['doc']
+            filename = doc.split('\\')
+            filename = filename[2]
+            filename = filename.replace(' ', '_')
+            obj['doc'] = filename
+        print(obj)
         for key, value in obj.items():
             if key == 'id':
                 pass
@@ -329,8 +344,8 @@ def update_circuit(id):
                 db.update_circuit(key, value, obj['id'])
         return jsonify({"msg": 'Updated'})
     
-@app.route('/download/<int:id>', methods=['POST'])
-@cross_origin(methods=['POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+@app.route('/download/<int:id>', methods=['GET'])
+@cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def download(id):
     row = db.search_circuit_to_view(id)
     print(row)
@@ -339,7 +354,8 @@ def download(id):
     target = os.path.join(UPLOAD_FOLDER, 'docs/')
     print(target)
     if file in os.listdir(target):
-        return send_file(target + file, as_attachment=True)
+        return send_file(target + file, as_attachment=True, mimetype='application/pdf')
+        
     else:
         return jsonify({"error": "File not Found"})
     
