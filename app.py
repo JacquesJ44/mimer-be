@@ -119,15 +119,21 @@ def register():
     obj = request.get_json()
     print(obj)
     row = db.get_user_by_email(obj['email'])
-    if not row:
-        name = obj['name']
-        surname = obj['surname']
-        email = obj['email']
-        password = obj['password']
-        db.save_user(name, surname, email, password)
-        return jsonify({"msg" : "Succesfully added to db"})
-    else:
-        return jsonify({"msg": "User already exists"})
+    
+    if request.method == 'POST':
+        if not row:
+            name = obj['name']
+            surname = obj['surname']
+            email = obj['email']
+            password = obj['password']
+            confirmpassword = obj['confirmpassword']
+            if confirmpassword != password:
+                return jsonify({"error": "Passwords do not match"})
+            else:
+                db.save_user(name, surname, email, password)
+                return jsonify({"msg" : "Welcome to the knowledge of the gods"})
+        else:
+            return jsonify({"msg": "User already exists"})
    
 @app.route('/circuits', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
