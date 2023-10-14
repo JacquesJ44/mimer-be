@@ -82,13 +82,13 @@ def login():
     
     if request.method == 'POST':
         if row:
-            print(row)
+            # print(row)
             if obj['password'] == row[4]:
                 session['email'] = row[3]
                 session['fullname'] = row[1] + ' ' + row[2]
-                print(session)
+                # print(session)
                 
-                res = make_response({'id': row[0], 'email': row[3], 'route': '/POST'})
+                res = make_response({'id': row[0], 'email': row[3]})
                 res.status_code = 200
                 res.headers['Content-Type', 'Authorization', 'Acces-Control-Allow-Origin'] = True
                 return res
@@ -104,7 +104,7 @@ def logout():
         if 'email' in session:
             del session['fullname']
             del session['email']
-            print(session)
+            # print(session)
         res = make_response({"msg": "You have been logged out"})
         res.status_code = 200
         res.headers['Content-Type', 'Authorization', 'Acces-Control-Allow-Origin'] = True
@@ -117,7 +117,7 @@ def logout():
 @cross_origin(methods=['POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def register():
     obj = request.get_json()
-    print(obj)
+    # print(obj)
     row = db.get_user_by_email(obj['email'])
     
     if request.method == 'POST':
@@ -141,7 +141,7 @@ def circuits():
     if request.method == 'GET':
         if session:
             row = db.get_user_by_email(session['email'])
-            print(row) 
+            # print(row) 
             res = make_response({'id': row[0], 'email': row[3]})
             res.status_code = 200
             res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
@@ -156,19 +156,19 @@ def circuits():
 
     if request.method == 'POST':
         obj = request.get_json()
-        print('This is the object')
-        print(obj)
+        # print('This is the object')
+        # print(obj)
         y = []
         for key, value in obj.items():
             if value == "":
                 pass
             else:
                 value = "'%" + value + "%'"
-                print(key)
-                print(value)
+                # print(key)
+                # print(value)
                 y = db.search_similar_circuit(key, value)
         if y:
-            print(y)
+            # print(y)
             return y
             
         return jsonify({"error": "No entries found"}), 404
@@ -179,7 +179,7 @@ def sites():
     if request.method == 'GET':
         if session:
             row = db.get_user_by_email(session['email'])
-            print(row) 
+            # print(row) 
             res = make_response({'id': row[0], 'email': row[3]})
             res.status_code = 200
             res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
@@ -194,19 +194,19 @@ def sites():
 
     if request.method == 'POST':
         obj = request.get_json()
-        print('This is the object')
-        print(obj)
+        # print('This is the object')
+        # print(obj)
         y = []
         for key, value in obj.items():
             if value == "":
                 pass
             else:
                 value = "'%" + value + "%'"
-                print(key)
-                print(value)
+                # print(key)
+                # print(value)
                 y = db.search_similar_site(key, value)
         if y:
-            print(y)
+            # print(y)
             return y
             
         return jsonify({"error": "No entries found"}), 404
@@ -229,7 +229,7 @@ def addcircuit():
             # input()
         else:
             filename = 'None'
-        print(obj)
+        # print(obj)
         try:
             db.save_circuit(
                 obj['vendor'],
@@ -266,7 +266,7 @@ def upload():
     file = request.files['formFile']
     filename = secure_filename(file.filename)
     destination = '/'.join([target, filename])
-    print(filename)
+    # print(filename)
     if filename not in os.listdir(target):
         file.save(destination)
     else:
@@ -283,7 +283,7 @@ def upload():
 def addsite():
     if request.method == 'POST':
         obj = request.get_json()
-        print(obj)
+        # print(obj)
         exists = db.search_site(obj['site'])
         if not exists:
             db.save_site(
@@ -312,7 +312,7 @@ def addsite():
 @cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def view_circuit(id):
     row = db.search_circuit_to_view(id)
-    print(row)
+    # print(row)
     return row[0]
 
 @app.route('/viewsite/<site>', methods=['GET', 'POST'])
@@ -320,13 +320,13 @@ def view_circuit(id):
 def view_site(site):
     if request.method == 'GET':
         row = db.search_site_to_view(site)
-        print(row)
+        # print(row)
         return row[0]
 
     if request.method == 'POST':
         row = db.search_site_to_view(site)
-        print('row found')
-        print(row)
+        # print('row found')
+        # print(row)
         db.delete_site(site)
         return jsonify({"msg": "Deleted!"})
 
@@ -335,14 +335,14 @@ def view_site(site):
 def update_circuit(id):
     if request.method == 'POST':
         obj = request.get_json()
-        print(obj)
+        # print(obj)
         if obj['doc']:
             doc = obj['doc']
             filename = doc.split('\\')
             filename = filename[2]
             filename = filename.replace(' ', '_')
             obj['doc'] = filename
-        print(obj)
+        # print(obj)
         for key, value in obj.items():
             if key == 'id':
                 pass
@@ -354,11 +354,11 @@ def update_circuit(id):
 @cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def download(id):
     row = db.search_circuit_to_view(id)
-    print(row)
+    # print(row)
     file = row[0]['doc']
-    print(file)
+    # print(file)
     target = os.path.join(UPLOAD_FOLDER, 'docs/')
-    print(target)
+    # print(target)
     if file in os.listdir(target):
         return send_file(target + file, as_attachment=True, mimetype='application/pdf')
         
@@ -371,9 +371,9 @@ def get_site():
     obj = request.get_json()
     if obj != "":
         obj = "'%" + obj + "%'"
-        print(obj)
+        # print(obj)
         y = db.search_sitename(obj)
-        print(y)
+        # print(y)
     else:
         return jsonify({"msg": "No site found"})
     return y
