@@ -1,10 +1,15 @@
 from flask import Flask
-from flask import jsonify, request, make_response, session
+from flask import jsonify, request, make_response, session, send_file, send_from_directory
 from flask_cors import CORS, cross_origin
+from werkzeug.utils import secure_filename
+from io import BytesIO
 import os
 import sqlite3
 
 from db import DbUtil
+
+UPLOAD_FOLDER = '/Users/jacquesdutoit/Documents/vsc/mimer-be'
+ALLOWED_EXTENSIONS = set(['pdf', 'png'])
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(12).hex()
@@ -13,6 +18,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config["SESSION_COOKIE_SAMESITE"] = 'None'
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_HTTPONLY"] = False
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 db = DbUtil()
 
@@ -56,8 +62,8 @@ cur.execute("""
         siteA TEXT,
         siteB TEXT,
         comments TEXT,
-        status TEXT
-        
+        status TEXT,
+        doc TEXT
     )
 """)
 con.close()
@@ -155,7 +161,6 @@ def circuits():
                 print(key)
                 print(value)
                 y = db.search_similar_circuit(key, value)
-                # y.append(x)
         if y:
             print(y)
             return y
@@ -207,8 +212,18 @@ def addcircuit():
     if request.method == 'POST':
         obj = request.get_json()
         status = 'Active'
+        if obj['doc']:
+            doc = obj['doc']
+            filename = doc.split('\\')
+            filename = filename[2]
+            # print('Original filename: ' + filename)
+            # input()
+            filename = filename.replace(' ', '_')
+            # print('Replaced with: ' + filename)
+            # input()
+        else:
+            filename = 'None'
         print(obj)
-        
         try:
             db.save_circuit(
                 obj['vendor'],
@@ -223,7 +238,8 @@ def addcircuit():
                 obj['siteA'],
                 obj['siteB'],
                 obj['comments'],
-                status
+                status,
+                filename
             )
             res = make_response({"msg": "Circuit successfully added"})
             res.status_code = 200
@@ -234,7 +250,28 @@ def addcircuit():
             res.status_code = 403
             res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
             return res
-        
+
+@app.route('/upload', methods=['POST'])
+@cross_origin(methods=['POST'], supports_credentials=True, origins='http://localhost:3000')
+def upload():
+    target = os.path.join(UPLOAD_FOLDER, 'docs')
+    if not os.path.isdir(target):
+        os.mkdir(target)
+    file = request.files['formFile']
+    filename = secure_filename(file.filename)
+    destination = '/'.join([target, filename])
+    print(filename)
+    if filename not in os.listdir(target):
+        file.save(destination)
+    else:
+        res = make_response({"error": "File already exists"})
+        res.status_code = 403
+        return res
+    res = make_response({"msg": "Document uploaded successfully!"})
+    res.status_code = 200
+    # res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
+    return res
+
 @app.route('/addsite', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def addsite():
@@ -293,12 +330,34 @@ def update_circuit(id):
     if request.method == 'POST':
         obj = request.get_json()
         print(obj)
+        if obj['doc']:
+            doc = obj['doc']
+            filename = doc.split('\\')
+            filename = filename[2]
+            filename = filename.replace(' ', '_')
+            obj['doc'] = filename
+        print(obj)
         for key, value in obj.items():
             if key == 'id':
                 pass
             else:
                 db.update_circuit(key, value, obj['id'])
         return jsonify({"msg": 'Updated'})
+    
+@app.route('/download/<int:id>', methods=['GET'])
+@cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+def download(id):
+    row = db.search_circuit_to_view(id)
+    print(row)
+    file = row[0]['doc']
+    print(file)
+    target = os.path.join(UPLOAD_FOLDER, 'docs/')
+    print(target)
+    if file in os.listdir(target):
+        return send_file(target + file, as_attachment=True, mimetype='application/pdf')
+        
+    else:
+        return jsonify({"error": "File not Found"})
     
 @app.route('/getsite', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
@@ -312,16 +371,6 @@ def get_site():
     else:
         return jsonify({"msg": "No site found"})
     return y
-
-# @app.route('/deletesite', methods=['GET', 'POST']) 
-# @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
-# def delete_site():
-#     if request.method == 'POST':
-#         obj = request.get_json()
-#         print(obj)
-#         db.delete_site(obj['site'])
-
-#         return jsonify({"msg": "Deleted!"})
 
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, resource={r"/*": {"origins": "*"}})

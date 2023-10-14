@@ -113,12 +113,12 @@ class DbUtil:
     
     # DB OPS WITH CIRCUITS
     # Save a new circuit
-    def save_circuit(self, vendor, circuitType, speed, circuitNumber, enni, vlan, startDate, contractTerm, endDate, siteA, siteB, comments, status):
+    def save_circuit(self, vendor, circuitType, speed, circuitNumber, enni, vlan, startDate, contractTerm, endDate, siteA, siteB, comments, status, doc):
         c = self.con.cursor()
 
         c.execute(
-            'INSERT INTO circuits (vendor, circuitType, speed, circuitNumber, enni, vlan, startDate, contractTerm, endDate, siteA, siteB, comments, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', 
-            (vendor, circuitType, speed, circuitNumber, enni, vlan, startDate, contractTerm, endDate, siteA, siteB, comments, status)
+            'INSERT INTO circuits (vendor, circuitType, speed, circuitNumber, enni, vlan, startDate, contractTerm, endDate, siteA, siteB, comments, status, doc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', 
+            (vendor, circuitType, speed, circuitNumber, enni, vlan, startDate, contractTerm, endDate, siteA, siteB, comments, status, doc)
         )
         self.con.commit()
         return c.lastrowid
@@ -129,7 +129,7 @@ class DbUtil:
         c = self.con.cursor()
 
         for row in c.execute(
-               'SELECT * FROM circuits WHERE ' + dict_key + ' LIKE ' + dict_value
+               'SELECT * FROM circuits WHERE ' + dict_key + ' LIKE ' + dict_value + ' ORDER BY vlan DESC'
             ):
             x.append(row)
 
