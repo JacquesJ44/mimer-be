@@ -8,7 +8,10 @@ import sqlite3
 
 from db import DbUtil
 
-UPLOAD_FOLDER = '/Users/jacquesdutoit/Documents/vsc/mimer-be'
+# UPLOAD_FOLDER = '/Users/jacquesdutoit/Documents/vsc/mimer-be'
+UPLOAD_FOLDER = './docs'
+# C:\Users\Jacques\OneDrive - Aesir Systems (Pty) Ltd\Documents\vsc\mimer-be\docs
+# "C:\Users\Jacques\OneDrive - Aesir Systems (Pty) Ltd\Documents\vsc\mimer-be"
 ALLOWED_EXTENSIONS = set(['pdf', 'png'])
 
 app = Flask(__name__)
@@ -90,7 +93,7 @@ def login():
                 
                 res = make_response({'id': row[0], 'email': row[3]})
                 res.status_code = 200
-                res.headers['Content-Type', 'Authorization', 'Acces-Control-Allow-Origin'] = True
+                res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
                 return res
             else:
                 return jsonify({"msg": "Username or password is incorrect"}), 401
@@ -107,7 +110,7 @@ def logout():
             # print(session)
         res = make_response({"msg": "You have been logged out"})
         res.status_code = 200
-        res.headers['Content-Type', 'Authorization', 'Acces-Control-Allow-Origin'] = True
+        res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
         return res
     elif not session:
         return jsonify({"msg": "You weren't logged in"})
@@ -260,14 +263,14 @@ def addcircuit():
 @app.route('/upload', methods=['POST'])
 @cross_origin(methods=['POST'], supports_credentials=True, origins='http://localhost:3000')
 def upload():
-    target = os.path.join(UPLOAD_FOLDER, 'docs')
-    if not os.path.isdir(target):
-        os.mkdir(target)
+    # target = os.path.join(UPLOAD_FOLDER, 'docs')
+    if not os.path.isdir(UPLOAD_FOLDER):
+        os.mkdir(UPLOAD_FOLDER)
     file = request.files['formFile']
     filename = secure_filename(file.filename)
-    destination = '/'.join([target, filename])
+    destination = '/'.join([UPLOAD_FOLDER, filename])
     # print(filename)
-    if filename not in os.listdir(target):
+    if filename not in os.listdir(UPLOAD_FOLDER):
         file.save(destination)
     else:
         res = make_response({"error": "File already exists"})
@@ -338,11 +341,13 @@ def update_circuit(id):
         # print(obj)
         if obj['doc']:
             doc = obj['doc']
+            # print(doc)
+            # input()
             filename = doc.split('\\')
             filename = filename[2]
-            filename = filename.replace(' ', '_')
-            obj['doc'] = filename
-        # print(obj)
+            # filename = filename.replace(' ', '_')
+            obj['doc'] = secure_filename(filename)
+            # print(obj['doc'])
         for key, value in obj.items():
             if key == 'id':
                 pass
@@ -356,11 +361,14 @@ def download(id):
     row = db.search_circuit_to_view(id)
     # print(row)
     file = row[0]['doc']
+    # print('FILE: ')
     # print(file)
-    target = os.path.join(UPLOAD_FOLDER, 'docs/')
+    # print('UPLOAD FOLDER: ')
+    # print(UPLOAD_FOLDER)
+    target = '/'.join([UPLOAD_FOLDER, file])
     # print(target)
-    if file in os.listdir(target):
-        return send_file(target + file, as_attachment=True, mimetype='application/pdf')
+    if file in os.listdir(UPLOAD_FOLDER):
+        return send_file(target, as_attachment=True, mimetype='application/pdf')
         
     else:
         return jsonify({"error": "File not Found"})
