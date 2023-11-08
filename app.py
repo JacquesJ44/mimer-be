@@ -227,7 +227,8 @@ def addcircuit():
             filename = filename[2]
             # print('Original filename: ' + filename)
             # input()
-            filename = filename.replace(' ', '_')
+            # filename = filename.replace(' ', '_')
+            obj['doc'] = secure_filename(filename)
             # print('Replaced with: ' + filename)
             # input()
         else:
