@@ -387,6 +387,11 @@ def get_site():
         return jsonify({"msg": "No site found"})
     return y
 
+# @app.route('/test', methods=['GET'])
+# @cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+# def test():
+#     return jsonify({"msg": "It works"})
+
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, resource={r"/*": {"origins": "*"}})
     app.run(debug=True)
