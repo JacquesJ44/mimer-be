@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import jsonify, request, make_response, session, send_file, send_from_directory
 from flask_cors import CORS, cross_origin
+from flask_session import Session
 from werkzeug.utils import secure_filename
 from io import BytesIO
 import os
@@ -16,14 +17,15 @@ ALLOWED_EXTENSIONS = set(['pdf', 'png'])
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(12).hex()
-app.config['SESSION_PERMANENT'] = True
+app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config["SESSION_COOKIE_SAMESITE"] = 'None'
-app.config["SESSION_COOKIE_SECURE"] = True
+# app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_HTTPONLY"] = False
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 db = DbUtil()
+Session(app)
 
 con = sqlite3.connect('mimir.db', check_same_thread=False)
 cur = con.cursor()
@@ -83,6 +85,14 @@ def login():
     obj = request.get_json()
     row = db.get_user_by_email(obj['email'])
     
+    if request.method == 'GET':
+        print(app.config['SECRET_KEY'])
+    # if request.method == 'GET':
+    #     if session:
+    #         print(session)
+    #     else:
+    #         return jsonify({"msg": "You are not authorized"}), 401
+        
     if request.method == 'POST':
         if row:
             # print(row)
@@ -116,8 +126,8 @@ def logout():
         return jsonify({"msg": "You weren't logged in"})
 
 
-@app.route('/register', methods=['POST'])
-@cross_origin(methods=['POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+@app.route('/register', methods=['GET', 'POST'])
+@cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def register():
     obj = request.get_json()
     # print(obj)
@@ -137,6 +147,25 @@ def register():
                 return jsonify({"msg" : "Welcome to the knowledge of the gods"})
         else:
             return jsonify({"msg": "User already exists"})
+        
+@app.route('/navbar', methods=['GET', 'POST'])
+@cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+def navbar():
+    if request.method == 'GET':
+        if session:
+            row = db.get_user_by_email(session['email'])
+            # print(row) 
+            res = make_response({'id': row[0], 'email': row[3]})
+            res.status_code = 200
+            res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
+            # print(res.response)
+            return res
+        elif not session:
+            res = make_response({"error": 'You are not authorized'})
+            res.status_code = 200
+            res.headers['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'] = True
+            # print(res.response)
+            return res
    
 @app.route('/circuits', methods=['GET', 'POST'])
 @cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
@@ -316,6 +345,7 @@ def addsite():
 @cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def view_circuit(id):
     row = db.search_circuit_to_view(id)
+    # print('row found')
     # print(row)
     return row[0]
 
@@ -334,13 +364,20 @@ def view_site(site):
         db.delete_site(site)
         return jsonify({"msg": "Deleted!"})
 
-@app.route('/updatecircuit/<int:id>', methods=['POST'])
-@cross_origin(methods=['POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
+@app.route('/updatecircuit/<int:id>', methods=['GET', 'POST'])
+@cross_origin(methods=['GET', 'POST'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
 def update_circuit(id):
+    row = db.search_circuit_to_view(id)
+    if request.method == 'GET':
+        # print('This is the row')
+        # print(row)
+        return row[0]
+
     if request.method == 'POST':
         obj = request.get_json()
+        # print('OBJ: ')
         # print(obj)
-        if obj['doc']:
+        if 'doc' in obj:    
             doc = obj['doc']
             # print(doc)
             # input()
@@ -349,6 +386,8 @@ def update_circuit(id):
             # filename = filename.replace(' ', '_')
             obj['doc'] = secure_filename(filename)
             # print(obj['doc'])
+        else:
+            pass
         for key, value in obj.items():
             if key == 'id':
                 pass
@@ -394,4 +433,4 @@ def get_site():
 
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, resource={r"/*": {"origins": "*"}})
-    app.run(debug=True)
+    app.run()
