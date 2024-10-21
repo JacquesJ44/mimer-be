@@ -12,7 +12,6 @@ from db import DbUtil
 # UPLOAD_FOLDER = '/Users/jacquesdutoit/Documents/vsc/mimer-be'
 UPLOAD_FOLDER = './docs'
 # C:\Users\Jacques\OneDrive - Aesir Systems (Pty) Ltd\Documents\vsc\mimer-be\docs
-# "C:\Users\Jacques\OneDrive - Aesir Systems (Pty) Ltd\Documents\vsc\mimer-be"
 ALLOWED_EXTENSIONS = set(['pdf', 'png'])
 
 app = Flask(__name__)
