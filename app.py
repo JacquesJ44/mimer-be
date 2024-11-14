@@ -10,7 +10,7 @@ import pymysql
 from db import DbUtil
 
 UPLOAD_FOLDER = './docs'
-ALLOWED_EXTENSIONS = set(['pdf', 'png'])
+ALLOWED_EXTENSIONS = set(['pdf'])
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(12).hex()
@@ -39,8 +39,8 @@ cur.execute("""
     CREATE TABLE IF NOT EXISTS sites (
         id INT(5) PRIMARY KEY AUTO_INCREMENT,
         site VARCHAR(50) UNIQUE,
-        latitude VARCHAR(15),
-        longitude VARCHAR(15),
+        latitude VARCHAR(30),
+        longitude VARCHAR(30),
         building VARCHAR(30),
         street VARCHAR(30),
         number VARCHAR(5),
@@ -363,11 +363,6 @@ def get_site():
         values = (f"%{obj}%",)
         return db.search_sitename(query, values)
     return jsonify({"msg": "No site found"})
-
-# @app.route('/test', methods=['GET'])
-# @cross_origin(methods=['GET'], headers=['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'], supports_credentials=True, origins='http://localhost:3000')
-# def test():
-#     return jsonify({"msg": "It works"})
 
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, resource={r"/*": {"origins": "*"}})
